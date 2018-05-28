@@ -1,1 +1,1 @@
-../config/X_MonteCarloTest.txt
+../config/07_AttitudeEstimation.txt

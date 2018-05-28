@@ -90,20 +90,12 @@ void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
 
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
 
-    float phi = rollEst;
-    float theta = pitchEst;
-
-    float v[9] = {
-            1, sin(phi) * tan(theta), cos(phi) * tan(theta),
-            0, cos(phi), -sin(phi),
-            0, sin(phi) / cos(theta), cos(phi) / cos(theta)
-    };
-    Mat3x3F rot = Mat3x3F(v);
-    V3F angle_dot = rot * gyro;
-
-    float predictedRoll = rollEst + dtIMU * angle_dot.x;
-    float predictedPitch = pitchEst + dtIMU * angle_dot.y;
-    ekfState(6) = ekfState(6) + dtIMU * angle_dot.z; //yaw
+    Quaternion<float> quat = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6));
+    quat.IntegrateBodyRate(gyro, dtIMU);
+    
+    float predictedPitch = quat.Pitch();
+    float predictedRoll = quat.Roll();
+    ekfState(6) = quat.Yaw();
 
     // normalize yaw to -pi .. pi
     if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
